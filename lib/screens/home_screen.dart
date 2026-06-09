@@ -121,8 +121,12 @@ class HomeScreen extends StatelessWidget {
                       width: 130,
                       height: 130,
                       decoration: BoxDecoration(
-                        color: Color(int.parse(song.coverColorHex, radix: 16)),
                         borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(int.parse(song.gradientColors[0], radix: 16)),
+                            Color(int.parse(song.gradientColors[1], radix: 16)),
+                          ])
                       ),
                     ),
                     const SizedBox(height: 8),

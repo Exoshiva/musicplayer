@@ -1,5 +1,7 @@
 // MARK: - Mock-Dates
 
+// lib/models/mock_data.dart
+
 import 'song.dart';
 
 final List<Song> recentlyPlayed = [
@@ -7,45 +9,47 @@ final List<Song> recentlyPlayed = [
     id: '1',
     title: 'Specialz',
     artist: 'King Gnu',
-    coverColorHex: 'FF6A1B9A', // Deep Purple
+    gradientColors: ['FF8E2DE2', 'FF4A00E0'], // Violett zu dunklem Lila
   ),
   const Song(
     id: '2',
     title: 'Gurenge',
     artist: 'LiSA',
-    coverColorHex: 'FFC62828', // Red
+    gradientColors: ['FFFF416C', 'FFFF4B2B'], // Sattes Rot-Orange
   ),
   const Song(
     id: '3',
     title: 'Tristram Theme',
     artist: 'Matt Uelmen',
-    coverColorHex: 'FF37474F', // Blue Grey
+    gradientColors: ['FF434343', 'FF000000'], // Dunkles Grau/Schwarz
   ),
   const Song(
     id: '4',
-    title: 'Merry-Go-Round of Life',
+    title: 'Merry-Go-Round',
     artist: 'Joe Hisaishi',
-    coverColorHex: 'FF2E7D32', // Green
+    gradientColors: ['FF11998E', 'FF38EF7D'], // Sanftes Grün
   ),
 ];
-
 final List<Song> recommendedForYou = [
   const Song(
     id: '5',
     title: 'Cyberpunk City',
     artist: 'Neon Drive',
-    coverColorHex: 'FF00B8D4', // Cyan
+    gradientColors: ['FF8E2D2E', 'FF4A00E0'],
+    //coverColorHex: 'FF00B8D4', // Cyan
   ),
   const Song(
     id: '6',
     title: 'Night City Vibes',
     artist: 'Synthwave',
-    coverColorHex: 'FFD50000', // Deep Red
+    gradientColors: ['FF8E2D2E', 'FF4A00E0'],
+    //coverColorHex: 'FFD50000', // Deep Red
   ),
   const Song(
     id: '7',
     title: 'Calisthenics Flow',
     artist: 'Workout Beats',
-    coverColorHex: 'FFFF8F00', // Amber
+    gradientColors: ['FF8E2D2E', 'FF4A00E0'],
+    //coverColorHex: 'FFFF8F00', // Amber
   ),
 ];
