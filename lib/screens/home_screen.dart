@@ -124,9 +124,21 @@ class HomeScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                         gradient: LinearGradient(
                           colors: [
-                            Color(int.parse(song.gradientColors[0], radix: 16)),
-                            Color(int.parse(song.gradientColors[1], radix: 16)),
-                          ])
+                            Colors.white.withValues(alpha: 0.1),
+                            Colors.white.withValues(alpha: 0.03),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        // A Small Border
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha:0.1),
+                          width: 1,
+                        ),
+                      ),
+                      // Centered Music-Icon
+                      child: const Center(child: Icon(Icons.music_note_rounded, size: 56,
+                      color: Colors.white38),
                       ),
                     ),
                     const SizedBox(height: 8),
