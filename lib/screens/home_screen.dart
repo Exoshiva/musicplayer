@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:musicplayer/mini_player.dart';
 import 'package:musicplayer/models/mock_data.dart';
@@ -9,6 +11,37 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Side-Navigation
+      drawer: NavigationDrawer(
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(28, 24, 16, 16),
+            child: Text(
+              'Bibliothek',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.add_box_rounded),
+            title: const Text('Neue Playlist erstellen'),
+            onTap: () {},
+          ),
+          const Divider(indent: 28, endIndent: 28),
+          // Hier können später die lokalen Playlisten in einer ListView generiert werden
+        ],
+      ),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent, // Behält hintergrund bei
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () {
+              // Hier später den Settings-Screen anhängen!
+            },
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -117,31 +150,39 @@ class HomeScreen extends StatelessWidget {
                     children: [
                     
                   // MARK: - 4. The Album-Cover
-                    Container(
-                      width: 130,
-                      height: 130,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withValues(alpha: 0.1),
-                            Colors.white.withValues(alpha: 0.03),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(28),
+                      child: BackdropFilter(
+                        // 2. backdropFilter for Blur
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                          width: 130,
+                          height: 130,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(28),
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white.withValues(alpha: 0.10),
+                                Colors.white.withValues(alpha: 0.7),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            // A Small Border
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha:0.1),
+                              width: 1,
+                            ),
+                          ),
+                        // Centered Music-Icon
+                        child: const Center(child: Icon(Icons.music_note_rounded, size: 56,
+                        color: Colors.white38),
                         ),
-                        // A Small Border
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha:0.1),
-                          width: 1,
-                        ),
-                      ),
-                      // Centered Music-Icon
-                      child: const Center(child: Icon(Icons.music_note_rounded, size: 56,
-                      color: Colors.white38),
                       ),
                     ),
+                  ),
                     const SizedBox(height: 8),
+                   
                     // Song title
                     Text(
                       song.title,
@@ -161,7 +202,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                      ),
+                        ),
                     ],
                   ),
                 );
