@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart'; // BLoC Import
 import 'package:musicplayer/models/mock_data.dart';
 import 'package:musicplayer/models/song.dart';
-// Deine BLoC Imports
+// BLoC Imports
 import '../blocs/player/player_bloc.dart';
 import '../blocs/player/player_event.dart';
 import '../blocs/player/player_state.dart';
+// Utils Imports
+import 'package:musicplayer/utils/time_utils.dart';
 
+/// MARK: 0. - Entry Point
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({super.key});
 
@@ -18,6 +21,8 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen> {
   // local copy list for drag and drop
   late List<Song> queue;
+
+  double? _dragValue;
   
   @override 
   void initState() {
@@ -27,21 +32,24 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Den gesamten Body in einen BlocBuilder wickeln, damit Texte UND Buttons dynamisch sind
+    // 1. Der gesamte Body in einen BlocBuilder, damit Texte und Buttons dynamisch sind
     return BlocBuilder<PlayerBloc, PlayerState>(
       builder: (context, state) {
         
         // Dynamische Werte abgreifen
-        String displayTitle = 'Nichts wird abgespielt';
+        String displayTitle = 'Titel';
         String displayArtist = '-';
+        String? displayImagePath;
         bool isPlaying = state is PlayerPlaying;
 
         if (state is PlayerPlaying) {
           displayTitle = state.currentSong.title;
           displayArtist = state.currentSong.artist;
+          displayImagePath = state.currentSong.imagePath;
         } else if (state is PlayerPaused) {
           displayTitle = state.currentSong.title;
           displayArtist = state.currentSong.artist;
+          displayImagePath = state.currentSong.imagePath;
         }
 
         return Scaffold(
@@ -62,7 +70,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 onPressed: () {},
               ),
             ],
-          ),
+          ), 
+          // MARK:1. - AppBar
           body: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
@@ -76,14 +85,22 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     alignment: Alignment.topRight,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(32),
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFFA400E0),
-                          Color(0xFF3EFFF5),
-                        ],
+                      // Dynamic Cover-Image
+                      image: displayImagePath != null
+                        ? DecorationImage(
+                          image: AssetImage(displayImagePath),
+                          fit: BoxFit.cover,
+                        )
+                        : null,
+
+                        // --- FALLBACK ---
+                      gradient: displayImagePath == null
+                        ? const LinearGradient(
+                        colors: [Color(0xFFFFFBFD),Color(0xFF3EFFF5)],
                         begin: AlignmentGeometry.topLeft,
                         end: AlignmentGeometry.bottomRight,
-                      ),
+                      )
+                      : null,
                       boxShadow: [
                         BoxShadow(
                           color: const Color(0xFF3EFFF5).withValues(alpha: 0.4),
@@ -101,7 +118,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // 2. Song-Informations and Favorite-Star
+                // MARK: - 2. Song-Informations
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -141,28 +158,93 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // 3. Progress-Bar / timeline (Material 3 Slider)
-                SliderTheme(
-                  data: SliderThemeData(
-                    trackHeight: 4,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-                    activeTrackColor: Colors.white24,
-                    thumbColor: Theme.of(context).colorScheme.primary,
+                // MARK: - 3. Progress-Bar (Slider)
+              StreamBuilder<Duration?>(
+                stream: context.read<PlayerBloc>().audioRepository.durationStream,
+                builder: (context, durationSnapshot) {
+                  final duration = durationSnapshot.data ?? Duration.zero;
+
+                  return StreamBuilder<Duration>(
+                    stream:context.read<PlayerBloc>().audioRepository.positionStream,
+                    builder: (context, positionSnapshot) {
+                      var position = positionSnapshot.data ?? Duration.zero;
+
+                      double maxDuration = duration.inMilliseconds.toDouble();
+                      double currentVal = position.inMilliseconds.toDouble();
+                      
+                      if (maxDuration <= 0.0) maxDuration = 1.0;
+                      if (currentVal <= 0.0) currentVal = 0.0;
+                      if (currentVal > maxDuration) currentVal = maxDuration;
+                      
+                      // ---- DEBUGGING ---
+                      print("Live Poition: ${position.inSeconds} Sekunden ");
+
+
+                        return Column(
+                        children: [
+                          // 1. self Slider moving
+                          SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              trackHeight: 4.0,
+                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0),
+                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14.0),
+                              activeTrackColor: Theme.of(context).colorScheme.primary,
+                              inactiveTrackColor: Colors.white24,
+                              thumbColor: Theme.of(context).colorScheme.primary,
+                            ),
+                            child: Slider(
+                              min: 0.0,
+                              max: maxDuration,
+                              value: _dragValue ?? currentVal,
+                              // 1. onChanged wird beim Ziehen aufgerufen
+                              onChanged: (value) {
+                                setState(() {
+                                  _dragValue = value;
+                                });
+                              }, // 
+                              
+                              // 2. onChangeEnd ist eine Eigenschaft des Sliders
+                              onChangeEnd: (value) {
+                                // Spul-Befehl abschicken
+                                context.read<PlayerBloc>().audioRepository.seek(Duration(milliseconds: value.round()));
+                                // Visuellen Zieh-Wert löschen
+                                setState(() {
+                                  _dragValue = null;
+                                }); 
+                              },
+                            ),
+                          ),
+
+                          // 2. Text for Streambuilder inApp playertext
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  TimeUtils.formatDuration(position),
+                                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                                ),
+                                Text(
+                                  TimeUtils.formatDuration(duration),
+                                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  );
+                }
+               ),
+               
+                const SizedBox(
+                  height: 80,
+                  child: Center(
+                    child: Text("Über mir sitzt der Slider", style: TextStyle(color: Colors.white24))
                   ),
-                  child: Slider(value: 0.3, onChanged: (value) {}),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('1:04', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                      Text('-2:30', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
+            ),
 
                 // MARK: 4. Playback-Controlls
                 Row(
@@ -174,7 +256,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.skip_previous, size: 40, color: Colors.white),
-                      onPressed: () {},
+                      onPressed: () {
+                        context.read<PlayerBloc>().add(SkipPrevious());
+                      },
                     ),
                     
                     // The Big Play-Button (Center)
@@ -197,8 +281,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
                           if (isPlaying) {
                             context.read<PlayerBloc>().add(PauseSong());
                           } else if (state is PlayerPaused) {
+                            context.read<PlayerBloc>().add(ResumeSong());
+                          } else if (state is PlayerInitial) {
                             // Spielt den aktuellen Song weiter
-                            context.read<PlayerBloc>().add(PlaySong(state.currentSong));
+                            context.read<PlayerBloc>().add(PlaySong(recentlyPlayed[0]));
                           }
                         },
                       ),
@@ -206,7 +292,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                     
                     IconButton(
                       icon: const Icon(Icons.skip_next, size: 40, color: Colors.white),
-                      onPressed: () {},
+                      onPressed: () {
+                        context.read<PlayerBloc>().add(SkipNext());
+                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.repeat, size: 24, color: Colors.white54),
@@ -216,7 +304,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // 5. Queue-Button
+                // Queue-Button
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -227,14 +315,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ],
                 ),
               ],
-            )
+            ),
           ),
         );
       }
     );
   }
 
-  // MARK: - Bottom Sheet für die Warteschlange
+  // MARK: 5. - Bottom Sheet 
   void _showQueueBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,

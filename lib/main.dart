@@ -15,7 +15,8 @@ void main() {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return BlocProvider(create: (context) => PlayerBloc(audioRepository: AudioRepository()),
+    child: MaterialApp(
       title: 'MusicPlayer',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -32,6 +33,7 @@ void main() {
         ),
       ),
       home: const HomeScreen(),
+    ),
     );
   } 
 

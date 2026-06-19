@@ -15,3 +15,9 @@ class PlaySong extends PlayerEvent {
 }
 
 class PauseSong extends PlayerEvent {}
+
+class ResumeSong extends PlayerEvent {}
+
+class SkipNext extends PlayerEvent {}
+
+class SkipPrevious extends PlayerEvent {}

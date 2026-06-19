@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:musicplayer/mini_player.dart';
 import 'package:musicplayer/models/mock_data.dart';
 import 'package:musicplayer/screens/playlist_detail_screen.dart';
-//import 'package:radix_colors/radix_colors.dart'; // maybe later?
+
+import '../models/song.dart';
+import '../models/mock_data.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -27,7 +29,7 @@ class HomeScreen extends StatelessWidget {
       ),
       // 2. Der Scaffold ist jetzt transparent und liegt im Container
       child: Scaffold(
-        backgroundColor: Colors.transparent, // <- WICHTIG!
+        backgroundColor: Colors.transparent, 
         // erlaubt dem Body, HINTER die BottomnavigationBar zu fließen
         extendBody: true,
         // erlaubt dem Body, HINTER die obere SliverAppBar zu fließen
@@ -134,7 +136,8 @@ class HomeScreen extends StatelessWidget {
             // 2. remaining scrollable content
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 120.0),
+                // MARK: - Scrollable Content (Bottom-Safe-Area)
+                padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 240.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -213,7 +216,7 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         IconButton(
                           onPressed: () {}, 
-                          icon: const Icon(Icons.favorite_border, color: Colors.white),
+                          icon: const Icon(Icons.favorite_border_outlined, color: Colors.white54),
                         ),
                         const SizedBox(width: 8),
                         FilledButton.tonalIcon(
@@ -229,12 +232,12 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 32),
                     
-                    // Last Plays and other sections
-                    _buildAlbumSection('Zuletzt gehört'),
+                    // Last Plays and other sections 
+                    _buildAlbumSection('Zuletzt gehört', recentlyPlayed), // List 1
                     const SizedBox(height: 32),
-                    _buildAlbumSection('Für dich Empfohlen'),
+                    _buildAlbumSection('Für dich Empfohlen', recommendedForYou), // List 2
                     const SizedBox(height: 32),
-                    _buildAlbumSection('Neuerscheinungen'),
+                    _buildAlbumSection('Neuerscheinungen', recentlyPlayed.reversed.toList()), // List 3
                   ],
                 ),
               ),
@@ -300,7 +303,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   // MARK: - Helper Methods
-  Widget _buildAlbumSection(String title) {
+  Widget _buildAlbumSection(String title, List<Song> songList) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -317,9 +320,9 @@ class HomeScreen extends StatelessWidget {
           height: 190, // Fixed size for scrollability
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: recentlyPlayed.length,
+            itemCount: songList.length,
             itemBuilder: (context, index) {
-              final song = recentlyPlayed[index];
+              final song = songList[index];
               return Padding(
                 padding: const EdgeInsets.only(right: 16.0),
                 child: GestureDetector(
@@ -334,8 +337,11 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+
                     // MARK: - 4. Album-Cover
-                    ClipRRect(
+                  Hero(
+                    tag: song.id, // Einzigartiger Tag für jedes Album
+                    child: ClipRRect(
                       borderRadius: BorderRadius.circular(28),
                       child: BackdropFilter(
                         // 2. backdropFilter for Blur
@@ -356,17 +362,14 @@ class HomeScreen extends StatelessWidget {
                                 spreadRadius: -2,
                               ),
                             ],
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withValues(alpha: 0.10),
-                                Colors.white.withValues(alpha: 0.05),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                          // --- NEW: Image not Gradient ---
+                          image: DecorationImage(
+                            image: AssetImage(song.imagePath),
+                            fit: BoxFit.cover,
+                            ),  
                             // A Small Border (entfernt, da oben als border:Border.all hinzugefügt)
                           ),
-                          // Centered Music-Icon
+                          // Fallback-Icon
                           child: const Center(
                             child: Icon(Icons.music_note_rounded,
                                 size: 56, color: Colors.white38),
@@ -374,6 +377,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                  ),
                     const SizedBox(height: 8),
                     // Song title
                     SizedBox(

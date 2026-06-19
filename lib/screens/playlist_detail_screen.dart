@@ -27,10 +27,10 @@ class PlaylistDetailScreen extends StatelessWidget {
       // MARK: - Background
       body: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF0B192C), // Fallback-Farbe bis dein Bild da ist
+          color: Color(0xFF0B192C), // Fallback-Farbe bis Bild da ist
           /* HIER MORGEN DAS BILD EINBINDEN:
           image: DecorationImage(
-            image: AssetImage('assets/background.jpg'), 
+            image: AssetImage('assets/img/index_bg.png'), 
             fit: BoxFit.cover,
           ),
           */
@@ -45,7 +45,7 @@ class PlaylistDetailScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
                     children: [
-                      // Großes Cover
+                    Hero(tag: playlistTitle, child:  // Großes Cover
                       Container(
                         width: 250,
                         height: 250,
@@ -58,7 +58,7 @@ class PlaylistDetailScreen extends StatelessWidget {
                               offset: const Offset(0, 15),
                             ),
                           ],
-                          // Das Gradient kann später auch durch ein Bild ersetzt werden
+                          // Das Gradient kann später durch ein Bild ersetzen / dynamisch nach auswhl des users angepasst werden
                           gradient: const LinearGradient(
                             colors: [Color(0xFF40FFEF), Color(0xFF8E2DE2)],
                             begin: Alignment.topLeft,
@@ -69,6 +69,7 @@ class PlaylistDetailScreen extends StatelessWidget {
                           child: Icon(Icons.music_note, size: 80, color: Colors.white54),
                         ),
                       ),
+                    ),
                       const SizedBox(height: 24),
                       // Titel
                       Text(
@@ -118,43 +119,42 @@ class PlaylistDetailScreen extends StatelessWidget {
                 ),
               ),
 
-              // MARK: - Song Liste
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final song = recentlyPlayed[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              width: 56,
-                              height: 56,
-                              color: Colors.white10,
-                              child: const Icon(Icons.music_note, color: Colors.white38),
+                // MARK: - Song Liste
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final song = recentlyPlayed[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                width: 56,
+                                height: 56,
+                                color: Colors.white10,
+                                child: const Icon(Icons.music_note, color: Colors.white38),
+                              ),
+                            ),
+                            title: Text(song.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                            subtitle: Text(song.artist, style: const TextStyle(color: Colors.white54)),
+                            // Der Play-Button direkt in der Liste!
+                            trailing: IconButton(
+                              icon: const Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 40),
+                              onPressed: () {
+                                // Hier kommt später die Logik rein, um diesen spezifischen Track zu starten
+                              },
                             ),
                           ),
-                          title: Text(song.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                          subtitle: Text(song.artist, style: const TextStyle(color: Colors.white54)),
-                          // Der Play-Button direkt in der Liste!
-                          trailing: IconButton(
-                            icon: const Icon(Icons.play_circle_fill_rounded, color: Colors.white, size: 40),
-                            onPressed: () {
-                              // Hier kommt später die Logik rein, um diesen spezifischen Track zu starten
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                    childCount: recentlyPlayed.length,
+                        );
+                      },
+                      childCount: recentlyPlayed.length,
+                    ),
                   ),
                 ),
-              ),
-              
               // Abstand für den MiniPlayer, damit der letzte Song nicht verdeckt wird
               const SliverToBoxAdapter(child: SizedBox(height: 120)),
             ],
